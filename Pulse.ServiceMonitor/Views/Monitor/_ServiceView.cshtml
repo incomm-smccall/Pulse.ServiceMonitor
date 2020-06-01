@@ -1,0 +1,9 @@
+﻿@model IList<Pulse.ServiceMonitor.ViewModels.ServiceModel>
+
+@foreach (var item in Model)
+{
+    <div class="col-md-12">
+        <div class="row">Service Name: @item.ServiceName</div>
+        <div class="row">Service State: @item.ServiceState</div>
+    </div>
+}

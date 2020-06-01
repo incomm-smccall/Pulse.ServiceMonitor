@@ -1,0 +1,161 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Dashboard</h2>
+
+@*<div class="row ml-2">
+    <button id="btnStopService" class="btn btn-primary mr-2">Stop Service</button>
+    <button id="btnStartService" class="btn btn-primary">Start Service</button>
+</div>*@
+
+<div class="row">
+    <div class="card border-dark mt-2 ml-3" style="width: 30rem">
+        <div class="card-body">
+            <div class="row">
+                <div id="serviceName" class="font-weight-bold col-4 row"></div>
+                <div id="pulseJob" class="row"></div>
+            </div>
+            <div class="row">
+                <div id="srvName" class="font-weight-bold col-4 row"></div>
+                <div id="jobsmonitor" class="row"></div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button id="btnStopService" class="btn btn-primary mr-2">Stop Service</button>
+            <button id="btnStartService" class="btn btn-primary">Start Service</button>
+        </div>
+    </div>
+    <div class="card border-dark mt-2 ml-3" style="width: 50%">
+        <div class="card-body">
+            <div class="row col-md-4 font-weight-bolder">Job Run Events</div>
+            <div id="processName" class="font-weight-bold col-4 row"></div>
+            <div id="processValue" class="row"></div>
+        </div>
+    </div>
+    <div class="card border-dark mt-2 ml-3" style="width: 50%">
+        <div class="card-body">
+            <div class="row col-md-4 font-weight-bolder">Processes</div>
+            <div id="procValue" class="font-weight-bold col-4 row"></div>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(function () {
+            $.connection.hub.url = "http://localhost:8899/signalr";
+            var svc = $.connection.messageHub;
+            svc.client.receiveStatusUpdate = function (message) {
+                if (message.indexOf(":") > 0) {
+                    var msgArray = message.split(":");
+                    if (msgArray[0].toLowerCase().trim() == "pulsejob") {
+                        $("#serviceName").text(msgArray[0].trim());
+                        $("#pulseJob").text(msgArray[1].trim());
+                    } else if (msgArray[0].toLowerCase().trim() == "jobsmonitor") {
+                        $("#srvName").text(msgArray[0].trim());
+                        $("#jobsmonitor").text(msgArray[1].trim());
+                    }
+                }
+            };
+
+            svc.client.addMessage = function (message) {
+                var encodedMsg = $('<div />').text(message).html();
+                $("#pluginMsg").append('<li>' + encodedMsg + '</li>');
+            };
+
+            svc.client.procMessage = function (message) {
+                $("#procValue").text(message);
+            };
+
+            //svc.client.addMessage = function (message) {
+            //    if (message.indexOf(":") > 0) {
+            //        var msgArray = message.split(":");
+            //        if (msgArray[0].toLowerCase().trim() == "pulsejob") {
+            //            $("#serviceName").text(msgArray[0].trim());
+            //            $("#pulseJob").text(msgArray[1].trim());
+            //        } else if (msgArray[0].toLowerCase().trim() == "jobsmonitor") {
+            //            $("#srvName").text(msgArray[0].trim());
+            //            $("#jobsmonitor").text(msgArray[1].trim());
+            //        } else {
+            //            var encodedMsg = $('<div />').text(message).html();
+            //            console.log(encodedMsg);
+            //            $("#pluginMsg").append('<li>' + encodedMsg + '</li>');
+            //        }
+            //    }
+            //};
+
+            $.connection.hub.start().done(function () {
+                console.log("connection started");
+            });
+
+            //var notifications = $.connection.serviceHub;
+            //notifications.client.updateMessages = function () {
+            //    getAllMessages()
+            //};
+
+            //$.connection.hub.start().done(function () {
+            //    console.log("connection started")
+            //    getAllMessages();
+            //}).fail(function (e) {
+            //    alert(e);
+            //})  
+        });
+
+        function getAllMessages() {
+            var tbl = $('#svcMessage');
+            $.ajax({
+                url: '/Monitor/GetStatus',
+                contentType: 'application/html ; charset:utf-8',
+                type: 'GET',
+                dataType: 'html',
+                success: function (result) {
+                    console.log(result);
+                    $("#svcMessage").html(result);
+                }
+            });
+        };
+
+        $("#btnStartService").on("click", () => {
+            const url = "/Monitor/StartService";
+            $.ajax({
+                method: "POST",
+                url: url,
+                dataType: "html",
+                success: (data) => {
+                    console.log("Jobs service has been started");
+                }
+            });
+        });
+
+        $("#btnStopService").on("click", () => {
+            const url = "/Monitor/StopService";
+            $.ajax({
+                method: "POST",
+                url: url,
+                dataType: "html",
+                success: (data) => {
+                    console.log("Jobs Service has been stopped");
+                }
+            });
+        });
+    </script>
+
+
+    @*<script type="text/javascript">
+        $("#btnCheckService").on("click", () => {
+            const url = "/Monitor/GetServiceList";
+            $.ajax({
+                method: "POST",
+                url: url,
+                dataType: "html",
+                success: (data) => {
+                    $("#svcMessage").html(data);
+                }
+            });
+        });
+
+    </script>*@    
+}
